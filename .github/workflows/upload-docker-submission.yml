@@ -1,0 +1,63 @@
+name: Upload Docker Software to TIRA
+on: 
+  workflow_dispatch:
+    inputs:
+      notebook:
+        description: The path to the jupyter notebook that you want to execute.
+        required: true
+        default: baseline-retrieval-system/baseline-retrieval-system.ipynb
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      -
+        name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          registry: registry.webis.de
+          username: ${{ secrets.TIRA_DOCKER_REGISTRY_USER }}
+          password: ${{ secrets.TIRA_DOCKER_REGISTRY_TOKEN }}
+      -
+        name: Set up Dependencies
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+      -
+        name: Install required python packages
+        run: |
+          python -m pip install --upgrade pip
+          pip uninstall -y requests
+          pip install tira==0.0.128 requests==2.31.0
+      -
+        name: Set environment variables
+        env:
+          TIRA_TASK_ID: ir-lab-sose-2024
+          TIRA_VM_ID: knowledge-knights
+        run: |
+          tira-run --export-submission-environment \
+          	GITHUB_SHA=${{ github.sha }} \
+          	TIRA_VM_ID=${{ env.TIRA_VM_ID }} \
+          	TIRA_TASK_ID=${{ env.TIRA_TASK_ID }} \
+          	TIRA_DOCKER_REGISTRY_TOKEN=${{ secrets.TIRA_DOCKER_REGISTRY_TOKEN }} \
+          	TIRA_DOCKER_REGISTRY_USER=${{ secrets.TIRA_DOCKER_REGISTRY_USER }} \
+          	TIRA_CLIENT_TOKEN=${{ secrets.TIRA_CLIENT_TOKEN }} \
+          	TIRA_CLIENT_USER=${{ secrets.TIRA_CLIENT_USER }} \
+          	TIRA_CODE_REPOSITORY_ID=${{ secrets.TIRA_CODE_REPOSITORY_ID }} \
+          	TIRA_DOCKER_FILE=${{ inputs.dockerfile }}/Dockerfile \
+          	TIRA_DOCKER_PATH=${{ inputs.dockerpath }} \
+          	>> $GITHUB_ENV 
+      - name: Build, test, and upload image
+        run: |
+          cd ${{ github.workspace }}
+          docker build -t github-submission .
+          tira-run --command '/run-notebook.py --notebook /app/${{inputs.notebook}} --input $inputDataset --output $outputDir' --input-dataset ir-lab-sose-2024/ir-acl-anthology-20240504-training --image github-submission --push true --fail-if-output-is-empty
