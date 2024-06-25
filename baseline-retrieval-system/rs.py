@@ -18,7 +18,7 @@ pt_dataset = pt.get_dataset('irds:ir-lab-sose-2024/ir-acl-anthology-20240504-tra
 # A (pre-built) PyTerrier index loaded from TIRA
 index = tira.pt.index('ir-lab-sose-2024/tira-ir-starter/Index (tira-ir-starter-pyterrier)', pt_dataset)
 
-#definition of BM25 retrieval pipeline
+# definition of BM25 pipeline
 bm25 = pt.BatchRetrieve(index, wmodel="BM25")
 
 #starting the run
