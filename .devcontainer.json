@@ -16,5 +16,5 @@
       ]
     }
   },
-  "mounts": ["source=${localWorkspaceFolder}/.tira,target=/root/.tira,type=bind"],
+  "mounts": ["source=${localWorkspaceFolder}/.tira,target=/root/.tira,type=bind"]
 }
