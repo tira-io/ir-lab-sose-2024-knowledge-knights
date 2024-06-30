@@ -17,5 +17,4 @@
     }
   },
   "mounts": ["source=${localWorkspaceFolder}/.tira,target=/root/.tira,type=bind"],
-  "postCreateCommand": "pip install -r requirements.txt"
 }
