@@ -37,7 +37,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip uninstall -y requests
-          pip install tira==0.0.128 requests==2.31.0
+          pip install tira requests==2.31.0
       -
         name: Set environment variables
         env:
